@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Pharmaglow Admin</title>
+  <style>
+    body{font-family:system-ui,Arial; margin:0; background:#faf7ff; color:#1f2430}
+    header{padding:14px 18px; background:#fff; border-bottom:1px solid rgba(0,0,0,.08); position:sticky; top:0}
+    .wrap{width:min(1100px,92%); margin:18px auto; display:grid; gap:14px}
+    .card{background:#fff; border:1px solid rgba(0,0,0,.08); border-radius:14px; padding:14px}
+    input,select,textarea{width:100%; padding:10px; border:1px solid rgba(0,0,0,.12); border-radius:10px}
+    label{font-weight:700}
+    .grid{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+    .btn{padding:10px 12px; border-radius:10px; border:1px solid rgba(0,0,0,.12); background:#fff; cursor:pointer; font-weight:700}
+    .btn.primary{background:#7c4dff; border-color:#7c4dff; color:#fff}
+    table{width:100%; border-collapse:collapse}
+    th,td{border-bottom:1px solid rgba(0,0,0,.08); padding:10px; text-align:right; vertical-align:top}
+    th{background:#fbf8ff}
+    .rowBtns{display:flex; gap:8px; flex-wrap:wrap}
+    .muted{color:#5e6677}
+  </style>
+</head>
+<body>
+
+<header>
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+    <strong>Pharmaglow Admin</strong>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <input id="token" placeholder="Admin Token" style="width:260px"/>
+      <button class="btn primary" id="saveToken">حفظ التوكن</button>
+      <button class="btn" id="reloadAll">تحديث الطلبات</button>
+    </div>
+  </div>
+  <div class="muted" style="margin-top:6px">إضافة / تعديل المنتجات + متابعة الطلبات</div>
+</header>
+
+<div class="wrap">
+
+  <!-- Product Form -->
+  <div class="card">
+    <h3 style="margin:0 0 10px">إضافة / تعديل منتج</h3>
+
+    <div class="grid">
+      <div>
+        <label>ID (مميز)</label>
+        <input id="p_id" placeholder="مثال: shampoo_dandruff"/>
+      </div>
+      <div>
+        <label>Category</label>
+        <select id="p_category">
+          <option value="hair">Hair</option>
+          <option value="skin">Skin</option>
+        </select>
+      </div>
+      <div>
+        <label>Name EN</label>
+        <input id="p_name_en"/>
+      </div>
+      <div>
+        <label>Name AR</label>
+        <input id="p_name_ar"/>
+      </div>
+      <div>
+        <label>Price (LE)</label>
+        <input id="p_price" type="number" min="0"/>
+      </div>
+      <div>
+        <label>Image URL</label>
+        <input id="p_image_url" placeholder="رابط الصورة"/>
+      </div>
+      <div>
+        <label>Active</label>
+        <select id="p_active">
+          <option value="true">TRUE</option>
+          <option value="false">FALSE</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px; margin-top:12px; flex-wrap:wrap">
+      <button class="btn primary" id="upsertProduct">💾 حفظ المنتج</button>
+      <button class="btn" id="clearProductForm">🧹 تفريغ</button>
+      <button class="btn" id="deleteProduct">🗑 حذف المنتج</button>
+    </div>
+
+    <div class="muted" id="adminMsg" style="margin-top:10px"></div>
+  </div>
+
+  <!-- Orders -->
+  <div class="card">
+    <h3 style="margin:0 0 10px">الطلبات</h3>
+    <div class="muted">غيّر الحالة: new / processing / done</div>
+
+    <div style="overflow:auto; margin-top:10px">
+      <table>
+        <thead>
+          <tr>
+            <th>Order</th>
+            <th>العميل</th>
+            <th>المنتجات</th>
+            <th>الإجمالي</th>
+            <th>الحالة</th>
+            <th>حفظ</th>
+          </tr>
+        </thead>
+        <tbody id="ordersBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // ⬅️⬅️⬅️ حط رابط Google Apps Script هنا
+  const API_URL = "https://script.google.com/macros/s/AKfycbyIvfwILoqaBihI6nxSTV31-rZGooS7Ir703h_3Amya8tTCrUUxmcdgk_2SYrQuq_ZKOw/exec";
+
+  const el = (id)=>document.getElementById(id);
+  const msg = (t)=> el("adminMsg").textContent = t;
+
+  function getToken(){ return localStorage.getItem("pg_admin_token") || ""; }
+  function setToken(v){ localStorage.setItem("pg_admin_token", v); }
+
+  async function apiPost(payload){
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: {"Content-Type":"text/plain;charset=utf-8"},
+      body: JSON.stringify(payload)
+    });
+    return res.json();
+  }
+
+  async function loadOrders(){
+    const token = getToken();
+    if(!token){ msg("❗ أدخل Admin Token"); return; }
+
+    const res = await fetch(API_URL + "?action=orders&token=" + encodeURIComponent(token));
+    const data = await res.json();
+    if(!data.ok){ msg("خطأ: " + (data.error||"")); return; }
+
+    const tbody = el("ordersBody");
+    tbody.innerHTML = "";
+
+    data.orders.forEach(o=>{
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td><strong>${o.order_id}</strong><div class="muted">${o.created_at}</div></td>
+        <td>
+          <div><strong>${o.name}</strong></div>
+          <div>${o.phone}</div>
+          <div class="muted">${o.address}</div>
+        </td>
+        <td style="white-space:pre-wrap">${o.items}</td>
+        <td><strong>${o.total} LE</strong></td>
+        <td>
+          <select data-status="${o.order_id}">
+            <option value="new" ${o.status==="new"?"selected":""}>new</option>
+            <option value="processing" ${o.status==="processing"?"selected":""}>processing</option>
+            <option value="done" ${o.status==="done"?"selected":""}>done</option>
+          </select>
+        </td>
+        <td>
+          <button class="btn" data-save="${o.order_id}">💾 حفظ</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    document.querySelectorAll("[data-save]").forEach(btn=>{
+      btn.addEventListener("click", async ()=>{
+        const orderId = btn.getAttribute("data-save");
+        const sel = document.querySelector(`[data-status="${orderId}"]`);
+        const status = sel.value;
+
+        const out = await apiPost({
+          action:"admin_update_order_status",
+          admin_token:getToken(),
+          order_id:orderId,
+          status
+        });
+
+        msg(out.ok ? "✅ تم تحديث الحالة" : ("❌ خطأ: " + (out.error||"")));
+        if(out.ok) loadOrders();
+      });
+    });
+  }
+
+  async function upsertProduct(){
+    const token = getToken();
+    if(!token){ msg("❗ أدخل Admin Token"); return; }
+
+    const product = {
+      id: el("p_id").value.trim(),
+      category: el("p_category").value,
+      name_en: el("p_name_en").value.trim(),
+      name_ar: el("p_name_ar").value.trim(),
+      price: Number(el("p_price").value || 0),
+      image_url: el("p_image_url").value.trim(),
+      active: el("p_active").value === "true"
+    };
+
+    const out = await apiPost({
+      action:"admin_upsert_product",
+      admin_token: token,
+      product
+    });
+
+    msg(out.ok ? "✅ تم حفظ المنتج" : ("❌ خطأ: " + (out.error||"")));
+  }
+
+  async function deleteProduct(){
+    const token = getToken();
+    if(!token){ msg("❗ أدخل Admin Token"); return; }
+
+    const id = el("p_id").value.trim();
+    if(!id){ msg("اكتب ID المنتج"); return; }
+
+    const out = await apiPost({
+      action:"admin_delete_product",
+      admin_token: token,
+      id
+    });
+
+    msg(out.ok ? "🗑 تم حذف المنتج" : ("❌ خطأ: " + (out.error||"")));
+  }
+
+  function clearForm(){
+    ["p_id","p_name_en","p_name_ar","p_price","p_image_url"].forEach(x=>el(x).value="");
+    el("p_category").value="hair";
+    el("p_active").value="true";
+  }
+
+  // Init
+  el("token").value = getToken();
+
+  el("saveToken").addEventListener("click", ()=>{
+    setToken(el("token").value.trim());
+    msg("💾 تم حفظ التوكن");
+  });
+
+  el("reloadAll").addEventListener("click", loadOrders);
+  el("upsertProduct").addEventListener("click", upsertProduct);
+  el("deleteProduct").addEventListener("click", deleteProduct);
+  el("clearProductForm").addEventListener("click", clearForm);
+
+  if(getToken()) loadOrders();
+</script>
+
+</body>
+</html>
