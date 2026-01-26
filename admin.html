@@ -1,743 +1,267 @@
 <!doctype html>
-<html lang="ar" dir="rtl">
+<html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Pharmaglow Admin Dashboard</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Pharmaglow Admin Dashboard</title>
 
-  <!-- Arabic font (optional) -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* ================= PREMIUM DARK ADMIN ================= */
+:root{
+  --bg:#050712;
+  --card:rgba(255,255,255,.05);
+  --border:rgba(255,255,255,.1);
+  --text:#ecf2ff;
+  --muted:rgba(236,242,255,.65);
+  --primary:#22d3ee;
+  --accent:#a3e635;
+}
 
-  <style>
-    :root{
-      --bg:#070a12;
-      --bg2:#0b1020;
-      --surface: rgba(255,255,255,.05);
-      --surface2: rgba(255,255,255,.07);
-      --text:#eaf0ff;
-      --muted: rgba(234,240,255,.70);
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family: system-ui, Arial;
+  color:var(--text);
+  background:
+    radial-gradient(1000px 600px at 20% 0%, rgba(34,211,238,.15), transparent 60%),
+    radial-gradient(900px 600px at 80% 0%, rgba(163,230,53,.12), transparent 60%),
+    linear-gradient(180deg, #050712, #04040a);
+}
 
-      --primary:#22d3ee;
-      --primary2:#14b8a6;
-      --accent:#a3e635;
+/* Header */
+header{
+  position:sticky; top:0; z-index:10;
+  padding:16px 20px;
+  background:rgba(5,7,18,.8);
+  backdrop-filter: blur(10px);
+  border-bottom:1px solid var(--border);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap;
+}
 
-      --border: rgba(234,240,255,.10);
-      --border2: rgba(34,211,238,.22);
+input, select{
+  padding:10px 12px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  background:rgba(255,255,255,.04);
+  color:var(--text);
+}
 
-      --shadow: 0 18px 70px rgba(0,0,0,.55);
-      --glow: 0 0 0 1px rgba(34,211,238,.16), 0 18px 70px rgba(34,211,238,.14);
+/* Buttons */
+.btn{
+  padding:10px 14px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  background:rgba(255,255,255,.05);
+  color:var(--text);
+  font-weight:700;
+  cursor:pointer;
+}
+.btn.primary{
+  background: linear-gradient(135deg, #22d3ee, #14b8a6);
+  color:#021016;
+  border:none;
+}
 
-      --r:18px;
-      --r2:14px;
-      --ease: cubic-bezier(.2,.9,.2,1);
-    }
+/* Layout */
+.wrap{
+  width:min(1200px,92%);
+  margin:20px auto;
+  display:grid;
+  gap:16px;
+}
 
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family:"Tajawal",system-ui,Arial;
-      color:var(--text);
-      background:
-        radial-gradient(1100px 650px at 15% 0%, rgba(34,211,238,.14), transparent 62%),
-        radial-gradient(900px 600px at 85% 10%, rgba(163,230,53,.10), transparent 55%),
-        radial-gradient(1200px 700px at 50% 120%, rgba(20,184,166,.12), transparent 55%),
-        linear-gradient(180deg, var(--bg), #050712 55%, #04050c);
-    }
+/* KPI Cards */
+.kpis{
+  display:grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap:14px;
+}
+.kpi{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:16px;
+}
+.kpi .label{color:var(--muted); font-size:.9rem}
+.kpi .value{font-size:1.8rem; font-weight:900; margin-top:6px}
 
-    a{color:inherit;text-decoration:none}
-    .muted{color:var(--muted)}
-    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;}
-    .btn{
-      display:inline-flex; align-items:center; justify-content:center; gap:8px;
-      padding:10px 14px; border-radius: var(--r2);
-      border:1px solid rgba(234,240,255,.12);
-      background: rgba(255,255,255,.04);
-      color: var(--text); font-weight:900; cursor:pointer;
-      transition: transform .12s var(--ease), box-shadow .12s var(--ease), border-color .12s var(--ease);
-    }
-    .btn:hover{transform:translateY(-1px); border-color: rgba(234,240,255,.20); box-shadow:0 14px 34px rgba(0,0,0,.45);}
-    .btn:active{transform:translateY(0) scale(.99);}
-    .btn.primary{
-      background: linear-gradient(135deg, rgba(34,211,238,.96), rgba(20,184,166,.96));
-      color:#041018; border-color: rgba(34,211,238,.45);
-      box-shadow: 0 18px 50px rgba(34,211,238,.18);
-    }
-    .btn.ghost{background: rgba(255,255,255,.03);}
-    .pill{
-      display:inline-flex; align-items:center; gap:8px;
-      padding:7px 10px; border-radius:999px;
-      border:1px solid rgba(34,211,238,.22);
-      background: rgba(34,211,238,.08);
-      color: rgba(234,240,255,.92);
-      font-weight:900; font-size:.9rem;
-    }
+/* Table */
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:16px;
+}
 
-    /* Layout */
-    .app{
-      display:grid;
-      grid-template-columns: 280px 1fr;
-      min-height: 100vh;
-    }
-
-    /* Sidebar */
-    .sidebar{
-      position: sticky; top:0;
-      height: 100vh;
-      border-left: 1px solid rgba(234,240,255,.08);
-      background: rgba(7,10,18,.72);
-      backdrop-filter: blur(12px);
-      padding: 16px;
-      display:flex;
-      flex-direction:column;
-      gap: 14px;
-    }
-    .brand{
-      display:flex; align-items:center; gap:12px;
-      padding: 10px 10px;
-      border: 1px solid rgba(234,240,255,.08);
-      border-radius: var(--r);
-      background: rgba(255,255,255,.03);
-    }
-    .brand img{
-      width: 42px; height:42px; border-radius: 14px;
-      border:1px solid rgba(234,240,255,.10);
-      box-shadow: 0 12px 30px rgba(0,0,0,.45);
-      object-fit: cover;
-    }
-    .brand .title{font-weight: 1000; letter-spacing:-.01em;}
-    .brand .sub{font-size:.92rem; color: var(--muted); margin-top:2px;}
-
-    .sideSection{
-      border:1px solid rgba(234,240,255,.08);
-      border-radius: var(--r);
-      background: rgba(255,255,255,.03);
-      padding: 12px;
-    }
-    .sideSection h4{margin:0 0 8px; font-size: 14px; color: rgba(234,240,255,.88)}
-    .tokenRow{display:grid; gap:8px}
-    .input{
-      width:100%;
-      padding: 11px 12px;
-      border-radius: var(--r2);
-      border: 1px solid rgba(234,240,255,.12);
-      background: rgba(255,255,255,.03);
-      color: var(--text);
-      outline:none;
-    }
-    .input:focus{ border-color: rgba(34,211,238,.45); box-shadow:0 0 0 4px rgba(34,211,238,.14); }
-
-    .nav{
-      display:grid; gap: 6px;
-    }
-    .nav a{
-      display:flex; align-items:center; justify-content:space-between;
-      padding: 12px 12px;
-      border-radius: 14px;
-      border: 1px solid transparent;
-      color: rgba(234,240,255,.86);
-      transition: background .14s var(--ease), border-color .14s var(--ease), transform .14s var(--ease);
-    }
-    .nav a:hover{ background: rgba(255,255,255,.04); border-color: rgba(234,240,255,.10); transform: translateY(-1px);}
-    .nav a.active{
-      background: rgba(34,211,238,.10);
-      border-color: rgba(34,211,238,.30);
-      color: rgba(234,240,255,.98);
-      box-shadow: 0 0 0 1px rgba(34,211,238,.10) inset;
-    }
-
-    /* Main */
-    .main{
-      padding: 18px 18px 40px;
-    }
-    .topbar{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap: 12px;
-      flex-wrap: wrap;
-      padding: 14px 16px;
-      border:1px solid rgba(234,240,255,.08);
-      border-radius: var(--r);
-      background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03));
-      box-shadow: var(--shadow);
-      position: relative;
-      overflow: hidden;
-    }
-    .topbar::before{
-      content:"";
-      position:absolute; inset:-2px;
-      background:
-        radial-gradient(700px 240px at 20% 0%, rgba(34,211,238,.14), transparent 55%),
-        radial-gradient(700px 240px at 80% 0%, rgba(163,230,53,.10), transparent 55%);
-      opacity:.6; pointer-events:none;
-    }
-    .pageTitle{
-      position:relative;
-      display:flex;
-      flex-direction:column;
-      gap:4px;
-    }
-    .pageTitle h1{margin:0; font-size: 26px; letter-spacing:-.02em;}
-    .pageTitle p{margin:0; color: var(--muted); font-size:.95rem;}
-    .topActions{position:relative; display:flex; gap:10px; flex-wrap:wrap;}
-
-    /* Cards grid */
-    .kpis{
-      margin-top: 14px;
-      display:grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 12px;
-    }
-    .kpi{
-      border:1px solid rgba(234,240,255,.10);
-      border-radius: var(--r);
-      background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03));
-      box-shadow: var(--shadow-soft);
-      padding: 14px;
-      position:relative;
-      overflow:hidden;
-      transition: transform .18s var(--ease), border-color .18s var(--ease), box-shadow .18s var(--ease);
-    }
-    .kpi:hover{ transform: translateY(-3px); border-color: rgba(34,211,238,.20); box-shadow: var(--shadow); }
-    .kpi .label{color: var(--muted); font-weight:800; font-size:.92rem;}
-    .kpi .value{font-weight:1000; font-size: 26px; margin-top:6px; letter-spacing:-.02em;}
-    .kpi .hint{color: rgba(234,240,255,.58); font-size:.9rem; margin-top:4px;}
-    .kpi .spark{
-      position:absolute; inset:auto -40px -60px auto;
-      width: 220px; height:220px; border-radius: 999px;
-      background: radial-gradient(circle at 30% 30%, rgba(34,211,238,.25), transparent 60%);
-      filter: blur(0px);
-      opacity:.75;
-      pointer-events:none;
-    }
-
-    /* Panels */
-    .panel{
-      margin-top: 12px;
-      border:1px solid rgba(234,240,255,.10);
-      border-radius: var(--r);
-      background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03));
-      box-shadow: var(--shadow);
-      overflow:hidden;
-    }
-    .panelHeader{
-      display:flex; align-items:center; justify-content:space-between; gap:10px;
-      padding: 14px 16px;
-      border-bottom: 1px solid rgba(234,240,255,.08);
-      background: rgba(7,10,18,.35);
-      backdrop-filter: blur(10px);
-    }
-    .panelHeader h3{margin:0; font-size: 16px; letter-spacing:-.01em;}
-    .panelHeader .right{display:flex; gap:10px; flex-wrap:wrap;}
-    .panelBody{ padding: 14px 16px; }
-
-    /* Table */
-    .tableWrap{ overflow:auto; }
-    table{
-      width:100%;
-      border-collapse: separate;
-      border-spacing: 0;
-      min-width: 980px;
-    }
-    th,td{
-      padding: 12px 12px;
-      text-align:right;
-      vertical-align: top;
-      border-bottom: 1px solid rgba(234,240,255,.08);
-      font-size:.95rem;
-      white-space: normal;
-    }
-    thead th{
-      position: sticky; top: 0;
-      background: rgba(7,10,18,.62);
-      backdrop-filter: blur(10px);
-      z-index: 1;
-      color: rgba(234,240,255,.92);
-      font-weight: 1000;
-    }
-    tbody tr:hover{ background: rgba(34,211,238,.05); }
-
-    /* Status select + badges */
-    .statusSelect{
-      font-weight: 1000;
-      border-radius: 12px;
-      border:1px solid rgba(234,240,255,.12);
-      background: rgba(255,255,255,.03);
-      color: var(--text);
-      padding: 10px 10px;
-      outline: none;
-      min-width: 150px;
-    }
-    .badgeStatus{
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      padding: 6px 10px;
-      border-radius: 999px;
-      font-weight: 1000;
-      border: 1px solid rgba(234,240,255,.12);
-      background: rgba(255,255,255,.03);
-      margin-top:6px;
-      width: fit-content;
-    }
-    .st-new{ border-color: rgba(34,211,238,.28); background: rgba(34,211,238,.10); }
-    .st-processing{ border-color: rgba(251,191,36,.28); background: rgba(251,191,36,.10); }
-    .st-done{ border-color: rgba(163,230,53,.28); background: rgba(163,230,53,.10); }
-
-    /* Product form */
-    .formGrid{
-      display:grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-    }
-    .field{ display:grid; gap:7px; }
-    .field label{ font-weight:1000; }
-    .actionsRow{ display:flex; gap:10px; flex-wrap:wrap; margin-top: 12px; }
-    .note{ margin-top: 8px; color: var(--muted); }
-
-    /* Responsive */
-    @media (max-width: 1050px){
-      .app{ grid-template-columns: 1fr; }
-      .sidebar{ height:auto; position: relative; }
-      .kpis{ grid-template-columns: repeat(2, 1fr); }
-      .formGrid{ grid-template-columns: 1fr; }
-      table{ min-width: 920px; }
-    }
-    @media (max-width: 560px){
-      .kpis{ grid-template-columns: 1fr; }
-      .brand .sub{ display:none; }
-    }
-  </style>
+table{
+  width:100%;
+  border-collapse:collapse;
+}
+th,td{
+  border-bottom:1px solid var(--border);
+  padding:10px;
+  vertical-align:top;
+}
+th{color:var(--muted); text-align:left}
+tr:hover{background:rgba(255,255,255,.04)}
+.muted{color:var(--muted)}
+</style>
 </head>
 
 <body>
-  <div class="app">
 
-    <!-- Sidebar -->
-    <aside class="sidebar">
-      <div class="brand">
-        <!-- لو عندك لوجو في assets/logo.png سيبه -->
-        <img src="assets/logo.png" alt="Pharmaglow">
-        <div>
-          <div class="title">Pharmaglow</div>
-          <div class="sub">Admin • Science Meets Nature</div>
-        </div>
-      </div>
+<header>
+  <strong>Pharmaglow Admin Dashboard</strong>
 
-      <div class="sideSection">
-        <h4>Admin Token</h4>
-        <div class="tokenRow">
-          <input class="input" id="token" placeholder="Admin Token">
-          <div style="display:flex; gap:10px; flex-wrap:wrap">
-            <button class="btn primary" id="saveToken" type="button">حفظ التوكن</button>
-            <button class="btn ghost" id="reloadAll" type="button">تحديث الطلبات</button>
-          </div>
-          <div class="muted" style="font-size:.92rem">التوكن يتحفظ في المتصفح (LocalStorage).</div>
-        </div>
-      </div>
+  <div style="display:flex; gap:10px; flex-wrap:wrap">
+    <input id="token" placeholder="Admin Token" style="width:240px">
+    <button class="btn primary" id="saveToken">Save Token</button>
+    <button class="btn" id="reloadAll" type="button">Reload Orders</button>
+  </div>
+</header>
 
-      <div class="sideSection">
-        <h4>القائمة</h4>
-        <nav class="nav">
-          <a href="#dashboard" class="active" data-page="dashboard">Dashboard</a>
-          <a href="#orders" data-page="orders">Order Management</a>
-          <a href="#products" data-page="products">Product Management</a>
-        </nav>
-      </div>
+<div class="wrap">
 
-      <div class="sideSection">
-        <h4>معلومة</h4>
-        <div class="muted" style="font-size:.92rem">
-          الطلبات "done" سيتم إخفاؤها من القائمة تلقائيًا (أرشفة).
-        </div>
-      </div>
-    </aside>
-
-    <!-- Main -->
-    <main class="main">
-
-      <div class="topbar">
-        <div class="pageTitle">
-          <h1 id="pageTitle">Dashboard Overview</h1>
-          <p id="pageDesc">نظرة سريعة على الطلبات والإيراد.</p>
-        </div>
-        <div class="topActions">
-          <span class="pill" id="todayPill">Today</span>
-          <button class="btn primary" id="refreshBtn" type="button">↻ Refresh</button>
-        </div>
-      </div>
-
-      <!-- Dashboard -->
-      <section id="dashboardPage">
-        <div class="kpis">
-          <div class="kpi">
-            <div class="label">طلبات جديدة</div>
-            <div class="value" id="kpiNew">0</div>
-            <div class="hint">status = new</div>
-            <div class="spark"></div>
-          </div>
-          <div class="kpi">
-            <div class="label">قيد التنفيذ</div>
-            <div class="value" id="kpiProcessing">0</div>
-            <div class="hint">status = processing</div>
-            <div class="spark"></div>
-          </div>
-          <div class="kpi">
-            <div class="label">إجمالي طلبات (غير done)</div>
-            <div class="value" id="kpiTotalOpen">0</div>
-            <div class="hint">new + processing</div>
-            <div class="spark"></div>
-          </div>
-          <div class="kpi">
-            <div class="label">إجمالي الإيراد (Open)</div>
-            <div class="value" id="kpiRevenue">0 LE</div>
-            <div class="hint">مجموع totals</div>
-            <div class="spark"></div>
-          </div>
-        </div>
-
-        <div class="panel">
-          <div class="panelHeader">
-            <h3>آخر الطلبات (Open)</h3>
-            <div class="right">
-              <span class="muted" id="dashMsg">—</span>
-            </div>
-          </div>
-          <div class="panelBody">
-            <div class="tableWrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Order</th>
-                    <th>العميل</th>
-                    <th>المنتجات</th>
-                    <th>الإجمالي</th>
-                    <th>الحالة</th>
-                    <th>إجراء</th>
-                  </tr>
-                </thead>
-                <tbody id="ordersBody"></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Orders Page (same table, just anchor) -->
-      <section id="ordersPage" style="display:none">
-        <div class="panel" style="margin-top:14px">
-          <div class="panelHeader">
-            <h3>Order Management</h3>
-            <div class="right">
-              <button class="btn ghost" type="button" id="reloadOrders2">تحديث</button>
-            </div>
-          </div>
-          <div class="panelBody">
-            <div class="muted" style="margin-bottom:10px">غيّر الحالة: new / processing / done. الطلب done سيختفي.</div>
-            <div class="tableWrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Order</th>
-                    <th>العميل</th>
-                    <th>المنتجات</th>
-                    <th>الإجمالي</th>
-                    <th>الحالة</th>
-                    <th>إجراء</th>
-                  </tr>
-                </thead>
-                <tbody id="ordersBody2"></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Products Page -->
-      <section id="productsPage" style="display:none">
-        <div class="panel" style="margin-top:14px">
-          <div class="panelHeader">
-            <h3>Product Management</h3>
-            <div class="right">
-              <span class="muted" id="adminMsg">—</span>
-            </div>
-          </div>
-          <div class="panelBody">
-            <div class="formGrid">
-              <div class="field">
-                <label>ID (مميز)</label>
-                <input class="input" id="p_id" placeholder="مثال: shampoo_dandruff"/>
-              </div>
-              <div class="field">
-                <label>Category</label>
-                <select class="statusSelect" id="p_category">
-                  <option value="hair">Hair</option>
-                  <option value="skin">Skin</option>
-                </select>
-              </div>
-              <div class="field">
-                <label>Name EN</label>
-                <input class="input" id="p_name_en"/>
-              </div>
-              <div class="field">
-                <label>Name AR</label>
-                <input class="input" id="p_name_ar"/>
-              </div>
-              <div class="field">
-                <label>Price (LE)</label>
-                <input class="input" id="p_price" type="number" min="0"/>
-              </div>
-              <div class="field">
-                <label>Image URL</label>
-                <input class="input" id="p_image_url" placeholder="assets/products/xxx.jpg"/>
-              </div>
-              <div class="field">
-                <label>Active</label>
-                <select class="statusSelect" id="p_active">
-                  <option value="true">TRUE</option>
-                  <option value="false">FALSE</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="actionsRow">
-              <button class="btn primary" id="upsertProduct" type="button">💾 حفظ المنتج</button>
-              <button class="btn ghost" id="clearProductForm" type="button">🧹 تفريغ</button>
-              <button class="btn ghost" id="deleteProduct" type="button">🗑 حذف المنتج</button>
-            </div>
-
-            <div class="note">نصيحة: استخدم صور من داخل المشروع: <span class="mono">assets/products/...</span></div>
-          </div>
-        </div>
-      </section>
-
-    </main>
+  <!-- KPIs -->
+  <div class="kpis">
+    <div class="kpi"><div class="label">New Orders</div><div class="value" id="kpiNew">0</div></div>
+    <div class="kpi"><div class="label">Processing Orders</div><div class="value" id="kpiProcessing">0</div></div>
+    <div class="kpi"><div class="label">Open Orders</div><div class="value" id="kpiTotalOpen">0</div></div>
+    <div class="kpi"><div class="label">Open Revenue</div><div class="value" id="kpiRevenue">0 LE</div></div>
+    <div class="kpi"><div class="label">All Orders</div><div class="value" id="kpiAllCount">0</div></div>
+    <div class="kpi"><div class="label">All Revenue</div><div class="value" id="kpiAllRevenue">0 LE</div></div>
   </div>
 
+  <!-- Orders Table -->
+  <div class="card">
+    <h3 style="margin:0 0 10px">Open Orders</h3>
+    <div style="overflow:auto">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Customer</th>
+            <th>Items</th>
+            <th>Total</th>
+            <th>Status</th>
+            <th>Save</th>
+          </tr>
+        </thead>
+        <tbody id="ordersBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
 <script>
-  const API_URL = "https://script.google.com/macros/s/AKfycbyIvfwILoqaBihI6nxSTV31-rZGooS7Ir703h_3Amya8tTCrUUxmcdgk_2SYrQuq_ZKOw/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbyIvfwILoqaBihI6nxSTV31-rZGooS7Ir703h_3Amya8tTCrUUxmcdgk_2SYrQuq_ZKOw/exec";
 
-  const $ = (s)=>document.querySelector(s);
-  const $$ = (s)=>Array.from(document.querySelectorAll(s));
+const $ = s=>document.querySelector(s);
+const el = id=>document.getElementById(id);
 
-  function getToken(){ return localStorage.getItem("pg_admin_token") || ""; }
-  function setToken(v){ localStorage.setItem("pg_admin_token", v); }
+function money(n){ return Number(n||0) + " LE"; }
 
-  async function apiPost(payload){
-    const res = await fetch(API_URL, {
-      method: "POST",
-      headers: {"Content-Type":"text/plain;charset=utf-8"},
-      body: JSON.stringify(payload)
-    });
-    return res.json();
+function getToken(){ return localStorage.getItem("pg_admin_token")||""; }
+function setToken(v){ localStorage.setItem("pg_admin_token", v); }
+
+async function apiPost(payload){
+  const res = await fetch(API_URL,{
+    method:"POST",
+    headers:{"Content-Type":"text/plain;charset=utf-8"},
+    body: JSON.stringify(payload)
+  });
+  return res.json();
+}
+
+/* ================= LOAD DASHBOARD ================= */
+async function loadDashboard(){
+  const token = getToken();
+  if(!token){ alert("Enter Admin Token"); return; }
+
+  const res = await fetch(API_URL+"?action=orders&token="+encodeURIComponent(token));
+  const data = await res.json();
+  if(!data.ok){ alert("Error loading orders"); return; }
+
+  const all = data.orders || [];
+  const open = all.filter(o=> String(o.status).toLowerCase() !== "done");
+
+  // KPIs
+  const newCount = open.filter(o=>o.status==="new").length;
+  const procCount = open.filter(o=>o.status==="processing").length;
+
+  const openRevenue = open.reduce((s,o)=>s+Number(o.total||0),0);
+  const allRevenue = all.reduce((s,o)=>s+Number(o.total||0),0);
+
+  el("kpiNew").textContent = newCount;
+  el("kpiProcessing").textContent = procCount;
+  el("kpiTotalOpen").textContent = open.length;
+  el("kpiRevenue").textContent = money(openRevenue);
+  el("kpiAllCount").textContent = all.length;
+  el("kpiAllRevenue").textContent = money(allRevenue);
+
+  // Table
+  const tbody = el("ordersBody");
+  tbody.innerHTML = "";
+
+  if(open.length === 0){
+    tbody.innerHTML = `<tr><td colspan="6" class="muted">No open orders.</td></tr>`;
+    return;
   }
 
-  function setPage(page){
-    // nav active
-    $$(".nav a").forEach(a=>a.classList.toggle("active", a.dataset.page===page));
-
-    // sections
-    $("#dashboardPage").style.display = (page==="dashboard") ? "" : "none";
-    $("#ordersPage").style.display    = (page==="orders") ? "" : "none";
-    $("#productsPage").style.display  = (page==="products") ? "" : "none";
-
-    // title/desc
-    const t = $("#pageTitle"), d = $("#pageDesc");
-    if(page==="dashboard"){ t.textContent="Dashboard Overview"; d.textContent="نظرة سريعة على الطلبات والإيراد."; }
-    if(page==="orders"){ t.textContent="Order Management"; d.textContent="متابعة الطلبات وتغيير الحالة."; }
-    if(page==="products"){ t.textContent="Product Management"; d.textContent="إضافة / تعديل / حذف المنتجات."; }
-  }
-
-  function statusBadgeClass(status){
-    const s = String(status||"").toLowerCase();
-    if(s==="processing") return "st-processing";
-    if(s==="done") return "st-done";
-    return "st-new";
-  }
-
-  function money(n){ return `${Number(n||0)} LE`; }
-
-  async function loadOrdersInto(tbodyEl){
-    const token = getToken();
-    if(!token){
-      tbodyEl.innerHTML = `<tr><td colspan="6" class="muted">أدخل Admin Token أولاً</td></tr>`;
-      return {open:[], all:[]};
-    }
-
-    const res = await fetch(API_URL + "?action=orders&token=" + encodeURIComponent(token));
-    const data = await res.json();
-    if(!data.ok){
-      tbodyEl.innerHTML = `<tr><td colspan="6" class="muted">خطأ: ${(data.error||"")}</td></tr>`;
-      return {open:[], all:[]};
-    }
-
-    const all = data.orders || [];
-    const open = all.filter(o => String(o.status||"").toLowerCase() !== "done");
-
-    if(open.length===0){
-      tbodyEl.innerHTML = `<tr><td colspan="6" class="muted">لا توجد طلبات (غير done).</td></tr>`;
-      return {open, all};
-    }
-
-    tbodyEl.innerHTML = "";
-    open.forEach(o=>{
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>
-          <strong>${o.order_id}</strong>
-          <div class="muted">${o.created_at || ""}</div>
-        </td>
-        <td>
-          <div><strong>${o.name||""}</strong></div>
-          <div>${o.phone||""}</div>
-          <div class="muted">${o.address||""}</div>
-        </td>
-        <td style="white-space:pre-wrap">${o.items||""}</td>
-        <td><strong>${money(o.total)}</strong></td>
-        <td>
-          <select class="statusSelect" data-status="${o.order_id}">
-            <option value="new" ${o.status==="new"?"selected":""}>new</option>
-            <option value="processing" ${o.status==="processing"?"selected":""}>processing</option>
-            <option value="done" ${o.status==="done"?"selected":""}>done</option>
-          </select>
-          <div class="badgeStatus ${statusBadgeClass(o.status)}" data-badge="${o.order_id}">
-            ${String(o.status||"new")}
-          </div>
-        </td>
-        <td>
-          <button class="btn ghost" type="button" data-save="${o.order_id}">💾 حفظ</button>
-        </td>
-      `;
-      tbodyEl.appendChild(tr);
-    });
-
-    // bind select -> badge color/text
-    $$(`[data-status]`).forEach(sel=>{
-      sel.addEventListener("change", ()=>{
-        const id = sel.getAttribute("data-status");
-        const b = document.querySelector(`[data-badge="${id}"]`);
-        if(!b) return;
-        b.classList.remove("st-new","st-processing","st-done");
-        b.classList.add(statusBadgeClass(sel.value));
-        b.textContent = sel.value;
-      });
-    });
-
-    // bind save
-    $$(`[data-save]`).forEach(btn=>{
-      btn.addEventListener("click", async ()=>{
-        const id = btn.getAttribute("data-save");
-        const sel = document.querySelector(`[data-status="${id}"]`);
-        const status = sel ? sel.value : "new";
-
-        const out = await apiPost({
-          action:"admin_update_order_status",
-          admin_token: getToken(),
-          order_id: id,
-          status
-        });
-
-        $("#dashMsg").textContent = out.ok ? "✅ تم تحديث الحالة" : ("❌ " + (out.error||""));
-        if(out.ok) refreshAll();
-      });
-    });
-
-    return {open, all};
-  }
-
-  function calcKPIs(openOrders){
-    const newCount = openOrders.filter(o=>String(o.status).toLowerCase()==="new").length;
-    const procCount = openOrders.filter(o=>String(o.status).toLowerCase()==="processing").length;
-    const totalOpen = openOrders.length;
-    const revenue = openOrders.reduce((s,o)=> s + Number(o.total||0), 0);
-
-    $("#kpiNew").textContent = newCount;
-    $("#kpiProcessing").textContent = procCount;
-    $("#kpiTotalOpen").textContent = totalOpen;
-    $("#kpiRevenue").textContent = money(revenue);
-  }
-
-  async function refreshAll(){
-    const a = await loadOrdersInto($("#ordersBody"));
-    // نفس البيانات لصفحة orders
-    await loadOrdersInto($("#ordersBody2"));
-    calcKPIs(a.open);
-    $("#dashMsg").textContent = "✅ تم التحديث";
-  }
-
-  async function upsertProduct(){
-    const token = getToken();
-    if(!token){ $("#adminMsg").textContent = "❗ أدخل Admin Token"; return; }
-
-    const product = {
-      id: $("#p_id").value.trim(),
-      category: $("#p_category").value,
-      name_en: $("#p_name_en").value.trim(),
-      name_ar: $("#p_name_ar").value.trim(),
-      price: Number($("#p_price").value || 0),
-      image_url: $("#p_image_url").value.trim(),
-      active: $("#p_active").value === "true"
-    };
-
-    const out = await apiPost({ action:"admin_upsert_product", admin_token: token, product });
-    $("#adminMsg").textContent = out.ok ? "✅ تم حفظ المنتج" : ("❌ " + (out.error||""));
-  }
-
-  async function deleteProduct(){
-    const token = getToken();
-    if(!token){ $("#adminMsg").textContent = "❗ أدخل Admin Token"; return; }
-
-    const id = $("#p_id").value.trim();
-    if(!id){ $("#adminMsg").textContent = "اكتب ID المنتج"; return; }
-
-    const out = await apiPost({ action:"admin_delete_product", admin_token: token, id });
-    $("#adminMsg").textContent = out.ok ? "🗑 تم حذف المنتج" : ("❌ " + (out.error||""));
-  }
-
-  function clearForm(){
-    ["p_id","p_name_en","p_name_ar","p_price","p_image_url"].forEach(x=>$("#"+x).value="");
-    $("#p_category").value="hair";
-    $("#p_active").value="true";
-    $("#adminMsg").textContent = "—";
-  }
-
-  // Nav
-  $$(".nav a").forEach(a=>{
-    a.addEventListener("click", (e)=>{
-      e.preventDefault();
-      setPage(a.dataset.page);
-    });
+  open.forEach(o=>{
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><strong>${o.order_id}</strong><div class="muted">${o.created_at}</div></td>
+      <td><strong>${o.name}</strong><br>${o.phone}<br><span class="muted">${o.address}</span></td>
+      <td style="white-space:pre-wrap">${o.items}</td>
+      <td><strong>${o.total} LE</strong></td>
+      <td>
+        <select data-status="${o.order_id}">
+          <option value="new" ${o.status==="new"?"selected":""}>new</option>
+          <option value="processing" ${o.status==="processing"?"selected":""}>processing</option>
+          <option value="done" ${o.status==="done"?"selected":""}>done</option>
+        </select>
+      </td>
+      <td><button class="btn" data-save="${o.order_id}">Save</button></td>
+    `;
+    tbody.appendChild(tr);
   });
 
-  // Token
-  $("#token").value = getToken();
-  $("#saveToken").addEventListener("click", ()=>{
-    setToken($("#token").value.trim());
-    $("#dashMsg").textContent = "💾 تم حفظ التوكن";
-    refreshAll();
+  document.querySelectorAll("[data-save]").forEach(btn=>{
+    btn.addEventListener("click", async ()=>{
+      const id = btn.getAttribute("data-save");
+      const sel = document.querySelector(`[data-status="${id}"]`);
+      const status = sel.value;
+
+      const out = await apiPost({
+        action:"admin_update_order_status",
+        admin_token:getToken(),
+        order_id:id,
+        status
+      });
+
+      if(out.ok) loadDashboard();
+      else alert("Error saving");
+    });
   });
+}
 
-  // Buttons
-  $("#reloadAll").addEventListener("click", refreshAll);
-  $("#reloadOrders2").addEventListener("click", refreshAll);
-  $("#refreshBtn").addEventListener("click", refreshAll);
+/* ================= INIT ================= */
+el("token").value = getToken();
 
-  $("#upsertProduct").addEventListener("click", upsertProduct);
-  $("#deleteProduct").addEventListener("click", deleteProduct);
-  $("#clearProductForm").addEventListener("click", clearForm);
+el("saveToken").onclick = ()=>{
+  setToken(el("token").value.trim());
+  alert("Token saved");
+};
 
-  // Init
-  setPage("dashboard");
-  const today = new Date();
-  $("#todayPill").textContent = today.toLocaleDateString("ar-EG", { weekday:"long", year:"numeric", month:"long", day:"numeric" });
+el("reloadAll").onclick = loadDashboard;
 
-  if(getToken()) refreshAll();
-  else {
-    $("#ordersBody").innerHTML = `<tr><td colspan="6" class="muted">أدخل Admin Token ثم اضغط Refresh</td></tr>`;
-    $("#ordersBody2").innerHTML = `<tr><td colspan="6" class="muted">أدخل Admin Token ثم اضغط Refresh</td></tr>`;
-  }
+if(getToken()) loadDashboard();
 </script>
 
 </body>
