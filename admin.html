@@ -141,7 +141,9 @@
     const tbody = el("ordersBody");
     tbody.innerHTML = "";
 
-    data.orders.forEach(o=>{
+    data.orders
+  .filter(o => String(o.status || "").toLowerCase() !== "done")
+  .forEach(o => {
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td><strong>${o.order_id}</strong><div class="muted">${o.created_at}</div></td>
