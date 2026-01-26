@@ -29,7 +29,8 @@
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
       <input id="token" placeholder="Admin Token" style="width:260px"/>
       <button class="btn primary" id="saveToken">حفظ التوكن</button>
-      <button class="btn" id="reloadAll">تحديث الطلبات</button>
+      <button class="btn" id="reloadAll" type="button">تحديث الطلبات</button>
+
     </div>
   </div>
   <div class="muted" style="margin-top:6px">إضافة / تعديل المنتجات + متابعة الطلبات</div>
@@ -130,20 +131,28 @@
     return res.json();
   }
 
-  async function loadOrders(){
-    const token = getToken();
-    if(!token){ msg("❗ أدخل Admin Token"); return; }
+async function loadOrders() {
+  const token = getToken();
+  if (!token) { msg("❗ أدخل Admin Token"); return; }
 
+  try {
     const res = await fetch(API_URL + "?action=orders&token=" + encodeURIComponent(token));
     const data = await res.json();
-    if(!data.ok){ msg("خطأ: " + (data.error||"")); return; }
+    if (!data.ok) { msg("خطأ: " + (data.error || "")); return; }
 
     const tbody = el("ordersBody");
     tbody.innerHTML = "";
 
-    data.orders
-  .filter(o => String(o.status || "").toLowerCase() !== "done")
-  .forEach(o => {
+    const ordersToShow = (data.orders || [])
+      .filter(o => String(o.status || "").toLowerCase() !== "done");
+
+    if (ordersToShow.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" class="muted">لا توجد طلبات (غير done).</td></tr>`;
+      msg("✅ تم التحديث");
+      return;
+    }
+
+    ordersToShow.forEach(o => {
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td><strong>${o.order_id}</strong><div class="muted">${o.created_at}</div></td>
@@ -162,30 +171,40 @@
           </select>
         </td>
         <td>
-          <button class="btn" data-save="${o.order_id}">💾 حفظ</button>
+          <button class="btn" type="button" data-save="${o.order_id}">💾 حفظ</button>
         </td>
       `;
       tbody.appendChild(tr);
     });
 
-    document.querySelectorAll("[data-save]").forEach(btn=>{
-      btn.addEventListener("click", async ()=>{
+    // Bind save buttons after rendering
+    document.querySelectorAll("[data-save]").forEach(btn => {
+      btn.addEventListener("click", async () => {
         const orderId = btn.getAttribute("data-save");
         const sel = document.querySelector(`[data-status="${orderId}"]`);
-        const status = sel.value;
+        const status = sel ? sel.value : "new";
 
         const out = await apiPost({
-          action:"admin_update_order_status",
-          admin_token:getToken(),
-          order_id:orderId,
+          action: "admin_update_order_status",
+          admin_token: getToken(),
+          order_id: orderId,
           status
         });
 
-        msg(out.ok ? "✅ تم تحديث الحالة" : ("❌ خطأ: " + (out.error||"")));
-        if(out.ok) loadOrders();
+        msg(out.ok ? "✅ تم تحديث الحالة" : ("❌ خطأ: " + (out.error || "")));
+
+        // ✅ يحدث الجدول فورًا (ولو بقى done هيختفي)
+        if (out.ok) loadOrders();
       });
     });
+
+    msg("✅ تم التحديث");
+  } catch (err) {
+    console.error(err);
+    msg("❌ حصل خطأ أثناء التحديث. افتح Console وشوف الخطأ.");
   }
+}
+
 
   async function upsertProduct(){
     const token = getToken();
