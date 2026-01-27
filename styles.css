@@ -1073,4 +1073,36 @@ a{ color: inherit; }
   font-weight: 700;
   opacity: 1 !important;
 }
+/* ===== FORCE Quick Contact values visibility ===== */
+
+/* الكارد نفسه */
+.labelBox{
+  background: #ffffff !important;
+}
+
+/* العنوان */
+.labelBox__title{
+  color: #2a235e !important;
+  font-weight: 800 !important;
+}
+
+/* أسماء الحقول (Phone/Email/Location) */
+.labelRow > span{
+  color: #5b56a6 !important;
+  font-weight: 600 !important;
+}
+
+/* القيم نفسها (الرقم والإيميل والمكان) */
+.labelRow a,
+.labelRow .value,
+.labelRow strong,
+.labelRow div,
+.labelRow span:last-child{
+  color: #1f1b3a !important;   /* غامق وواضح */
+  font-weight: 800 !important;
+  opacity: 1 !important;
+  filter: none !important;
+  text-shadow: none !important;
+}
+
 
