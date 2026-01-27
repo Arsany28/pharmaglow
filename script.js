@@ -366,7 +366,7 @@ function renderProducts() {
         <button class="btn btn--primary" type="button" data-add-variant="${p.id}">
           ${state.lang === "ar" ? "أضف للطلب" : "Add to Order"}
         </button>
-        <button class="btn btn--ghost" type="button" data-order-now-variant="${p.id}">
+        <button class="btn btn--ghost" type="button" data-order-variant="${p.id}">
           ${state.lang === "ar" ? "اطلب الآن" : "Order"}
         </button>
       `;
@@ -422,7 +422,7 @@ function renderProducts() {
     });
   });
 
-  // Order button on product cards: add the clicked product then scroll to order form
+
   $$("[data-order-now]").forEach((btn) => {
     btn.addEventListener("click", () => {
       const id = btn.getAttribute("data-order-now");
@@ -431,17 +431,18 @@ function renderProducts() {
     });
   });
 
-  // Order button for products with variants: add selected variant then scroll
-  $$("[data-order-now-variant]").forEach((btn) => {
+  $$("[data-order-variant]").forEach((btn) => {
     btn.addEventListener("click", () => {
-      const id = btn.getAttribute("data-order-now-variant");
+      const id = btn.getAttribute("data-order-variant");
       const select = btn.parentElement.querySelector(".variantSelect");
-      const price = Number(select?.value || 0);
-      const label = select?.options?.[select.selectedIndex]?.text || "";
+      if (!select) return;
+      const price = Number(select.value);
+      const label = select.options[select.selectedIndex].text;
       addToCart(id, { price, label });
       scrollToOrder(true);
     });
   });
+
 }
 
 /* ================== CART ================== */
@@ -770,6 +771,26 @@ function bindProductModal(){
       $("#rvMsg").textContent = (state.lang==="ar" ? "فشل الإرسال: " : "Submit failed: ") + (e.message || "");
     }
   });
+}
+
+function scrollToOrder(autoFocus = true) {
+  const section = document.querySelector("#order");
+  if (!section) return;
+
+  const y = section.getBoundingClientRect().top + window.pageYOffset;
+
+  // ينزل تحت شوية مش عند أول السيكشن (غيّر الرقم لو عايز أكتر/أقل)
+  window.scrollTo({
+    top: y + 160,
+    behavior: "smooth"
+  });
+
+  if (autoFocus) {
+    setTimeout(() => {
+      const first = document.querySelector('#orderForm input[name="name"]');
+      if (first) first.focus({ preventScroll: true });
+    }, 600);
+  }
 }
 
 function bindUI(){
