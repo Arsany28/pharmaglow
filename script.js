@@ -337,7 +337,6 @@ function renderProducts() {
   filtered.forEach((p) => {
     const card = document.createElement("div");
     card.className = "card product";
-    card.dataset.productId = p.id;
 
     const name = currentText(p);
     const tags = currentTags(p);
@@ -367,9 +366,9 @@ function renderProducts() {
         <button class="btn btn--primary" type="button" data-add-variant="${p.id}">
           ${state.lang === "ar" ? "أضف للطلب" : "Add to Order"}
         </button>
-        <a class="btn btn--ghost" href="#order" data-order="${p.id}">
+        <button class="btn btn--ghost" type="button" data-order-now-variant="${p.id}">
           ${state.lang === "ar" ? "اطلب الآن" : "Order"}
-        </a>
+        </button>
       `;
     } else {
       priceHtml = `<span class="price">${money(p.price)}</span>`;
@@ -377,9 +376,9 @@ function renderProducts() {
         <button class="btn btn--primary" type="button" data-add="${p.id}">
           ${state.lang === "ar" ? "أضف للطلب" : "Add to Order"}
         </button>
-        <a class="btn btn--ghost" href="#order" data-order="${p.id}">
+        <button class="btn btn--ghost" type="button" data-order-now="${p.id}">
           ${state.lang === "ar" ? "اطلب الآن" : "Order"}
-        </a>
+        </button>
       `;
     }
 
@@ -420,6 +419,27 @@ function renderProducts() {
       const price = Number(select.value);
       const label = select.options[select.selectedIndex].text;
       addToCart(id, { price, label });
+    });
+  });
+
+  // Order button on product cards: add the clicked product then scroll to order form
+  $$("[data-order-now]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const id = btn.getAttribute("data-order-now");
+      addToCart(id, null);
+      scrollToOrder(true);
+    });
+  });
+
+  // Order button for products with variants: add selected variant then scroll
+  $$("[data-order-now-variant]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const id = btn.getAttribute("data-order-now-variant");
+      const select = btn.parentElement.querySelector(".variantSelect");
+      const price = Number(select?.value || 0);
+      const label = select?.options?.[select.selectedIndex]?.text || "";
+      addToCart(id, { price, label });
+      scrollToOrder(true);
     });
   });
 }
@@ -751,71 +771,9 @@ function bindProductModal(){
     }
   });
 }
-function scrollToOrder(autoFocus = true) {
-  const section = document.querySelector("#order");
-  if (!section) return;
-
-  // Smooth scroll to the order section
-  section.scrollIntoView({ behavior: "smooth", block: "start" });
-
-  // Offset for sticky header (adjust if you change header height)
-  setTimeout(() => {
-    window.scrollBy({ top: -110, left: 0, behavior: "instant" });
-  }, 300);
-
-  // Focus first input for faster ordering (and to open mobile keyboard)
-  if (autoFocus) {
-    setTimeout(() => {
-      const first = document.querySelector('#orderForm input[name="name"]');
-      if (first) first.focus({ preventScroll: true });
-    }, 450);
-  }
-}
 
 function bindUI(){
   bindProductModal();
-
-  // Any link that points to #order:
-// - If it's a product "Order" button -> add that product to cart (with selected variant if any) then scroll
-// - Otherwise (nav/hero) -> if cart empty, guide user to products; else scroll to order form
-  document.addEventListener("click", (e) => {
-    const a = e.target.closest('a[href="#order"]');
-    if (!a) return;
-
-    e.preventDefault();
-
-    // If this link is inside a product card, treat it as "Order this product"
-    const productCard = a.closest(".product");
-    if (productCard) {
-      const pid = a.getAttribute("data-order") || productCard.dataset.productId;
-      if (pid) {
-        // If variant select exists, order the selected variant
-        const sel = productCard.querySelector(".variantSelect");
-        if (sel) {
-          const price = Number(sel.value || 0);
-          const label = sel.options[sel.selectedIndex]?.text || "";
-          addToCart(pid, { price, label });
-        } else {
-          addToCart(pid, null);
-        }
-        // addToCart already syncs cart; now move user to the form
-        scrollToOrder(true);
-        return;
-      }
-    }
-
-    // Non-product "Order" buttons (nav/hero)
-    if (!state.cart || state.cart.length === 0) {
-      // No selected items yet -> take user to products instead of the form
-      const target = document.querySelector("#products");
-      if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
-      alert(state.lang === "ar" ? "اختار منتج الأول من المنتجات" : "Please select a product first");
-      return;
-    }
-
-    scrollToOrder(true);
-  });
-
 const yearEl = $("#year");
   if (yearEl) yearEl.textContent = new Date().getFullYear();
 
@@ -953,52 +911,3 @@ async function init() {
 }
 
 init();
-
-
-/* ================== NAV ACTIVE TAB (Lavender) ================== */
-(function(){
-  const links = Array.from(document.querySelectorAll('.nav a'));
-  if(!links.length) return;
-
-  const setActiveByHash = () => {
-    const h = (location.hash || '#home').toLowerCase();
-    links.forEach(a=>{
-      const href = (a.getAttribute('href')||'').toLowerCase();
-      const isActive = href === h;
-      a.classList.toggle('is-active', isActive);
-      if(isActive) a.setAttribute('aria-current','page');
-      else a.removeAttribute('aria-current');
-    });
-  };
-
-  window.addEventListener('hashchange', setActiveByHash);
-
-  // Also update while scrolling (best effort)
-  const sections = links
-    .map(a => document.querySelector((a.getAttribute('href')||'').trim()))
-    .filter(Boolean);
-
-  if('IntersectionObserver' in window && sections.length){
-    const obs = new IntersectionObserver((entries)=>{
-      // pick the most visible entry
-      const visible = entries
-        .filter(e=>e.isIntersecting)
-        .sort((a,b)=>b.intersectionRatio - a.intersectionRatio)[0];
-      if(visible && visible.target && visible.target.id){
-        const hash = '#'+visible.target.id;
-        links.forEach(a=>{
-          const href = (a.getAttribute('href')||'').toLowerCase();
-          const isActive = href === hash.toLowerCase();
-          a.classList.toggle('is-active', isActive);
-          if(isActive) a.setAttribute('aria-current','page');
-          else a.removeAttribute('aria-current');
-        });
-      }
-    }, { rootMargin: "-35% 0px -55% 0px", threshold: [0.1,0.2,0.35,0.5,0.65]});
-    sections.forEach(s=>obs.observe(s));
-  }
-
-  // initial
-  setActiveByHash();
-})();
-
