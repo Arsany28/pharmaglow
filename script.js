@@ -747,6 +747,19 @@ function bindProductModal(){
     }
   });
 }
+function scrollToOrder(autoFocus = true) {
+  const section = document.querySelector("#order");
+  if (!section) return;
+
+  section.scrollIntoView({ behavior: "smooth", block: "start" });
+
+  if (autoFocus) {
+    setTimeout(() => {
+      const first = document.querySelector('#orderForm input[name="name"]');
+      if (first) first.focus({ preventScroll: true });
+    }, 450);
+  }
+}
 
 function bindUI(){
   bindProductModal();
@@ -935,3 +948,4 @@ init();
   // initial
   setActiveByHash();
 })();
+
