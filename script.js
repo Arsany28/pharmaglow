@@ -781,7 +781,7 @@ function scrollToOrder(autoFocus = true) {
 
   // ينزل تحت شوية مش عند أول السيكشن (غيّر الرقم لو عايز أكتر/أقل)
   window.scrollTo({
-    top: y + 160,
+    top: y + 200,
     behavior: "smooth"
   });
 
@@ -932,3 +932,4 @@ async function init() {
 }
 
 init();
+
