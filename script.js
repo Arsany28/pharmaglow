@@ -601,7 +601,7 @@ function openProductModal(product){
     if(chosenVariant) addToCart(product.id, chosenVariant);
     else addToCart(product.id, null);
     closeProductModal();
-    location.hash = "#order";
+    scrollToOrder(true);
   };
 
   // text fields
@@ -751,8 +751,15 @@ function scrollToOrder(autoFocus = true) {
   const section = document.querySelector("#order");
   if (!section) return;
 
+  // Smooth scroll to the order section
   section.scrollIntoView({ behavior: "smooth", block: "start" });
 
+  // Offset for sticky header (adjust if you change header height)
+  setTimeout(() => {
+    window.scrollBy({ top: -110, left: 0, behavior: "instant" });
+  }, 300);
+
+  // Focus first input for faster ordering (and to open mobile keyboard)
   if (autoFocus) {
     setTimeout(() => {
       const first = document.querySelector('#orderForm input[name="name"]');
@@ -763,6 +770,15 @@ function scrollToOrder(autoFocus = true) {
 
 function bindUI(){
   bindProductModal();
+
+  // Any link that points to #order should scroll smoothly + focus the form
+  document.addEventListener("click", (e) => {
+    const a = e.target.closest('a[href="#order"]');
+    if (!a) return;
+    e.preventDefault();
+    scrollToOrder(true);
+  });
+
 const yearEl = $("#year");
   if (yearEl) yearEl.textContent = new Date().getFullYear();
 
@@ -904,7 +920,7 @@ init();
 
 /* ================== NAV ACTIVE TAB (Lavender) ================== */
 (function(){
-  const links = Array.from(document.querySelectorAll('.nav a.nav__link'));
+  const links = Array.from(document.querySelectorAll('.nav a'));
   if(!links.length) return;
 
   const setActiveByHash = () => {
