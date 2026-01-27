@@ -1,6 +1,6 @@
 /* ================== CONFIG ================== */
 const API_URL =
-  "https://script.google.com/macros/s/AKfycbyIvfwILoqaBihI6nxSTV31-rZGooS7Ir703h_3Amya8tTCrUUxmcdgk_2SYrQuq_ZKOw/exec";
+  "https://script.google.com/macros/s/AKfycbwBB5uLYGNwuA3VNyhhxdPOofv8ByVoOJDsV93NeaUVrG6DwrKYYmMlXLChWVHLpQ/exec";
 
 const CONTACT = {
   phone: "01284343786",
@@ -219,6 +219,23 @@ function money(n) {
   return `${Number(n || 0)} LE`;
 }
 
+
+function escapeHtml(s){
+  return String(s||"")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
+}
+
+function starsText(n){
+  const k = Math.max(1, Math.min(5, Number(n||0)));
+  return "★".repeat(k) + "☆".repeat(5-k);
+}
+
+let MODAL_PRODUCT = null;
+
 /* ================== API HELPERS ================== */
 async function apiGet(action) {
   const res = await fetch(`${API_URL}?action=${encodeURIComponent(action)}`, {
@@ -235,6 +252,30 @@ async function apiPost(payload) {
   });
   return res.json();
 }
+
+/* ================== REVIEWS API ================== */
+async function fetchReviews(productId){
+  const u = new URL(API_URL);
+  u.searchParams.set("action","reviews");
+  u.searchParams.set("product_id", productId);
+  const res = await fetch(u.toString(), { method:"GET" });
+  const data = await res.json();
+  if(!data.ok) throw new Error(data.error || "Failed to load reviews");
+  return data.reviews || [];
+}
+
+async function createReview(productId, name, stars, text){
+  const out = await apiPost({
+    action: "create_review",
+    product_id: productId,
+    name,
+    stars: Number(stars||5),
+    text
+  });
+  if(!out.ok) throw new Error(out.error || "Failed to submit review");
+  return out;
+}
+
 
 async function fetchProducts() {
   const data = await apiGet("products");
@@ -353,6 +394,12 @@ function renderProducts() {
     `;
 
     grid.appendChild(card);
+
+    // Open details modal when clicking image/title
+    const imgEl = card.querySelector('.product__img');
+    const titleEl = card.querySelector('h3');
+    if(imgEl){ imgEl.style.cursor = 'pointer'; imgEl.addEventListener('click', ()=>openProductModal(p)); }
+    if(titleEl){ titleEl.style.cursor = 'pointer'; titleEl.addEventListener('click', ()=>openProductModal(p)); }
   });
 
   // bind buttons
@@ -500,8 +547,210 @@ function renderBestSellers() {
 }
 
 /* ================== BIND UI ================== */
-function bindUI() {
-  const yearEl = $("#year");
+
+/* ================== PRODUCT MODAL ================== */
+function openProductModal(product){
+  MODAL_PRODUCT = product;
+  const modal = $("#productModal");
+  if(!modal) return;
+
+  const name = currentText(product);
+  $("#pmTitle").textContent = name;
+
+  const img = product.img || product.image_url || "";
+  $("#pmImg").src = img;
+  $("#pmImg").alt = name;
+
+  const priceEl = $("#pmPrice");
+  const addBtn = $("#pmAddBtn");
+  let chosenVariant = null;
+
+  // remove old variant select if exists
+  const oldSel = modal.querySelector("#pmVariantSelect");
+  if(oldSel) oldSel.remove();
+
+  if(product.variants && Array.isArray(product.variants) && product.variants.length){
+    const sel = document.createElement("select");
+    sel.id = "pmVariantSelect";
+    sel.className = "inputLike";
+    sel.style.maxWidth = "240px";
+
+    product.variants.forEach(v=>{
+      const label = (state.lang==="ar") ? v.label_ar : v.label_en;
+      const opt = document.createElement("option");
+      opt.value = String(v.price);
+      opt.textContent = `${label} — ${money(v.price)}`;
+      sel.appendChild(opt);
+    });
+
+    const priceRow = modal.querySelector(".modal__priceRow");
+    priceRow.insertBefore(sel, addBtn);
+
+    const sync = ()=>{
+      const price = Number(sel.value||0);
+      chosenVariant = { price, label: sel.options[sel.selectedIndex].text };
+      priceEl.textContent = money(price);
+    };
+    sel.addEventListener("change", sync);
+    sync();
+  } else {
+    priceEl.textContent = money(product.price);
+  }
+
+  addBtn.onclick = ()=>{
+    if(chosenVariant) addToCart(product.id, chosenVariant);
+    else addToCart(product.id, null);
+    closeProductModal();
+    location.hash = "#order";
+  };
+
+  // text fields
+  const desc = (state.lang==="ar" ? product.description_ar : product.description_en) || (state.lang==="ar" ? "لا يوجد وصف بعد." : "No description yet.");
+  const ing  = (state.lang==="ar" ? product.ingredients_ar  : product.ingredients_en)  || (state.lang==="ar" ? "لا توجد مكونات بعد." : "No ingredients yet.");
+  const use  = (state.lang==="ar" ? product.how_to_use_ar   : product.how_to_use_en)   || (state.lang==="ar" ? "لا توجد طريقة استخدام بعد." : "No instructions yet.");
+
+  $("#pmDesc").textContent = desc;
+  $("#pmIng").textContent  = ing;
+
+  const useLines = String(use).split("\n").map(x=>x.trim()).filter(Boolean);
+  $("#pmUse").innerHTML = (useLines.length > 1)
+    ? useLines.map(l=>`<div>• ${escapeHtml(l)}</div>`).join("")
+    : escapeHtml(use);
+
+  // Tabs labels (bilingual)
+  modal.querySelectorAll(".tab").forEach(t=>{
+    const key = t.getAttribute("data-tab");
+    if(state.lang==="ar"){
+      t.textContent = (key==="desc") ? "الوصف" : (key==="ing") ? "المكونات" : (key==="use") ? "طريقة الاستخدام" : "التقييمات";
+    } else {
+      t.textContent = (key==="desc") ? "Description" : (key==="ing") ? "Ingredients" : (key==="use") ? "How to Use" : "Reviews";
+    }
+  });
+
+  $("#pmReviewsTitle").textContent = state.lang==="ar" ? "آراء العملاء" : "Customer Reviews";
+  $("#rvSubmit").textContent = state.lang==="ar" ? "إرسال التقييم" : "Submit Review";
+  $("#rvMsg").textContent = "";
+  $("#rvText").value = "";
+
+  const savedName = localStorage.getItem("pg_review_name") || "";
+  if(savedName && !$("#rvName").value) $("#rvName").value = savedName;
+
+  modal.classList.remove("is-hidden");
+  document.body.style.overflow = "hidden";
+
+  setModalTab("desc");
+  loadAndRenderReviews(product.id);
+}
+
+function closeProductModal(){
+  const modal = $("#productModal");
+  if(!modal) return;
+  modal.classList.add("is-hidden");
+  document.body.style.overflow = "";
+  MODAL_PRODUCT = null;
+}
+
+function setModalTab(key){
+  const modal = $("#productModal");
+  if(!modal) return;
+  modal.querySelectorAll(".tab").forEach(t=>t.classList.toggle("is-active", t.getAttribute("data-tab")===key));
+  modal.querySelectorAll(".tabPanel").forEach(p=>p.classList.toggle("is-hidden", p.getAttribute("data-panel")!==key));
+}
+
+async function loadAndRenderReviews(productId){
+  const listEl = $("#pmReviewsList");
+  const countEl = $("#pmReviewsCount");
+  const ratingEl = $("#pmRating");
+
+  if(listEl) listEl.innerHTML = `<div class="muted">${state.lang==="ar" ? "جارٍ التحميل..." : "Loading..."}</div>`;
+  if(countEl) countEl.textContent = "—";
+  if(ratingEl) ratingEl.textContent = "";
+
+  try{
+    const reviews = await fetchReviews(productId);
+
+    if(reviews.length){
+      const avg = reviews.reduce((s,r)=>s+Number(r.stars||0),0) / reviews.length;
+      const avgRounded = Math.round(avg*10)/10;
+      ratingEl.innerHTML = `<span class="stars">${escapeHtml(starsText(Math.round(avg)))}</span> <span class="muted small">${avgRounded}/5 • ${reviews.length}</span>`;
+    } else {
+      ratingEl.innerHTML = `<span class="muted small">${state.lang==="ar" ? "لا توجد تقييمات بعد." : "No reviews yet."}</span>`;
+    }
+
+    if(countEl) countEl.textContent = String(reviews.length || 0);
+
+    if(!reviews.length){
+      listEl.innerHTML = `<div class="muted">${state.lang==="ar" ? "كن أول من يكتب تقييمًا." : "Be the first to review."}</div>`;
+      return;
+    }
+
+    listEl.innerHTML = reviews.map(r=>{
+      const who = escapeHtml(r.name || (state.lang==="ar" ? "عميل" : "Customer"));
+      const st = Math.max(1, Math.min(5, Number(r.stars||0)));
+      const txt = escapeHtml(r.text || "");
+      const dt = r.created_at ? escapeHtml(String(r.created_at)) : "";
+      return `
+        <div class="reviewItem">
+          <div class="reviewTop">
+            <strong>${who}</strong>
+            <span class="stars">${escapeHtml(starsText(st))}</span>
+          </div>
+          <div class="muted small">${dt}</div>
+          <div style="margin-top:8px; white-space:pre-wrap">${txt}</div>
+        </div>
+      `;
+    }).join("");
+  }catch(e){
+    console.error(e);
+    listEl.innerHTML = `<div class="muted">${state.lang==="ar" ? "فشل تحميل التقييمات." : "Failed to load reviews."}</div>`;
+  }
+}
+
+function bindProductModal(){
+  const modal = $("#productModal");
+  if(!modal) return;
+
+  modal.querySelectorAll("[data-close-modal]").forEach(el=>{
+    el.addEventListener("click", closeProductModal);
+  });
+
+  document.addEventListener("keydown", (e)=>{
+    if(e.key === "Escape" && !modal.classList.contains("is-hidden")) closeProductModal();
+  });
+
+  modal.querySelectorAll(".tab").forEach(t=>{
+    t.addEventListener("click", ()=>setModalTab(t.getAttribute("data-tab")));
+  });
+
+  $("#rvSubmit").addEventListener("click", async ()=>{
+    if(!MODAL_PRODUCT) return;
+
+    const name = $("#rvName").value.trim();
+    const stars = Number($("#rvStars").value || 5);
+    const text = $("#rvText").value.trim();
+
+    if(!name || !text){
+      $("#rvMsg").textContent = state.lang==="ar" ? "من فضلك اكتب الاسم والتقييم." : "Please enter your name and review.";
+      return;
+    }
+
+    try{
+      $("#rvMsg").textContent = state.lang==="ar" ? "جارٍ الإرسال..." : "Submitting...";
+      localStorage.setItem("pg_review_name", name);
+      await createReview(MODAL_PRODUCT.id, name, stars, text);
+      $("#rvText").value = "";
+      $("#rvMsg").textContent = state.lang==="ar" ? "تم الإرسال ✓" : "Submitted ✓";
+      await loadAndRenderReviews(MODAL_PRODUCT.id);
+    }catch(e){
+      console.error(e);
+      $("#rvMsg").textContent = (state.lang==="ar" ? "فشل الإرسال: " : "Submit failed: ") + (e.message || "");
+    }
+  });
+}
+
+function bindUI(){
+  bindProductModal();
+const yearEl = $("#year");
   if (yearEl) yearEl.textContent = new Date().getFullYear();
 
   const langToggle = $("#langToggle");
@@ -638,3 +887,51 @@ async function init() {
 }
 
 init();
+
+
+/* ================== NAV ACTIVE TAB (Lavender) ================== */
+(function(){
+  const links = Array.from(document.querySelectorAll('.nav a.nav__link'));
+  if(!links.length) return;
+
+  const setActiveByHash = () => {
+    const h = (location.hash || '#home').toLowerCase();
+    links.forEach(a=>{
+      const href = (a.getAttribute('href')||'').toLowerCase();
+      const isActive = href === h;
+      a.classList.toggle('is-active', isActive);
+      if(isActive) a.setAttribute('aria-current','page');
+      else a.removeAttribute('aria-current');
+    });
+  };
+
+  window.addEventListener('hashchange', setActiveByHash);
+
+  // Also update while scrolling (best effort)
+  const sections = links
+    .map(a => document.querySelector((a.getAttribute('href')||'').trim()))
+    .filter(Boolean);
+
+  if('IntersectionObserver' in window && sections.length){
+    const obs = new IntersectionObserver((entries)=>{
+      // pick the most visible entry
+      const visible = entries
+        .filter(e=>e.isIntersecting)
+        .sort((a,b)=>b.intersectionRatio - a.intersectionRatio)[0];
+      if(visible && visible.target && visible.target.id){
+        const hash = '#'+visible.target.id;
+        links.forEach(a=>{
+          const href = (a.getAttribute('href')||'').toLowerCase();
+          const isActive = href === hash.toLowerCase();
+          a.classList.toggle('is-active', isActive);
+          if(isActive) a.setAttribute('aria-current','page');
+          else a.removeAttribute('aria-current');
+        });
+      }
+    }, { rootMargin: "-35% 0px -55% 0px", threshold: [0.1,0.2,0.35,0.5,0.65]});
+    sections.forEach(s=>obs.observe(s));
+  }
+
+  // initial
+  setActiveByHash();
+})();
