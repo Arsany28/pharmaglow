@@ -337,6 +337,7 @@ function renderProducts() {
   filtered.forEach((p) => {
     const card = document.createElement("div");
     card.className = "card product";
+    card.dataset.productId = p.id;
 
     const name = currentText(p);
     const tags = currentTags(p);
@@ -366,6 +367,9 @@ function renderProducts() {
         <button class="btn btn--primary" type="button" data-add-variant="${p.id}">
           ${state.lang === "ar" ? "أضف للطلب" : "Add to Order"}
         </button>
+        <a class="btn btn--ghost" href="#order" data-order="${p.id}">
+          ${state.lang === "ar" ? "اطلب الآن" : "Order"}
+        </a>
       `;
     } else {
       priceHtml = `<span class="price">${money(p.price)}</span>`;
@@ -373,7 +377,7 @@ function renderProducts() {
         <button class="btn btn--primary" type="button" data-add="${p.id}">
           ${state.lang === "ar" ? "أضف للطلب" : "Add to Order"}
         </button>
-        <a class="btn btn--ghost" href="#order">
+        <a class="btn btn--ghost" href="#order" data-order="${p.id}">
           ${state.lang === "ar" ? "اطلب الآن" : "Order"}
         </a>
       `;
@@ -771,11 +775,44 @@ function scrollToOrder(autoFocus = true) {
 function bindUI(){
   bindProductModal();
 
-  // Any link that points to #order should scroll smoothly + focus the form
+  // Any link that points to #order:
+// - If it's a product "Order" button -> add that product to cart (with selected variant if any) then scroll
+// - Otherwise (nav/hero) -> if cart empty, guide user to products; else scroll to order form
   document.addEventListener("click", (e) => {
     const a = e.target.closest('a[href="#order"]');
     if (!a) return;
+
     e.preventDefault();
+
+    // If this link is inside a product card, treat it as "Order this product"
+    const productCard = a.closest(".product");
+    if (productCard) {
+      const pid = a.getAttribute("data-order") || productCard.dataset.productId;
+      if (pid) {
+        // If variant select exists, order the selected variant
+        const sel = productCard.querySelector(".variantSelect");
+        if (sel) {
+          const price = Number(sel.value || 0);
+          const label = sel.options[sel.selectedIndex]?.text || "";
+          addToCart(pid, { price, label });
+        } else {
+          addToCart(pid, null);
+        }
+        // addToCart already syncs cart; now move user to the form
+        scrollToOrder(true);
+        return;
+      }
+    }
+
+    // Non-product "Order" buttons (nav/hero)
+    if (!state.cart || state.cart.length === 0) {
+      // No selected items yet -> take user to products instead of the form
+      const target = document.querySelector("#products");
+      if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+      alert(state.lang === "ar" ? "اختار منتج الأول من المنتجات" : "Please select a product first");
+      return;
+    }
+
     scrollToOrder(true);
   });
 
