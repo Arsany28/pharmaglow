@@ -949,28 +949,7 @@ input::placeholder, textarea::placeholder{ color: rgba(31,36,48,.45); }
   mix-blend-mode: normal !important;
 }
 
-/* ===== FORCE chip colors ===== */
-.filters .chip{
-  border-radius: 999px !important;
-  border: 2px solid #6f63d9 !important;
-  background: #ffffff !important;
-  color: #2a235e !important;
-  padding: 10px 18px !important;
-  font-weight: 800 !important;
-  text-shadow: none !important;
-  box-shadow: 0 6px 16px rgba(111,99,217,.20) !important;
-}
 
-.filters .chip:hover{
-  background: #efeaff !important;
-}
-
-.filters .chip.is-active{
-  background: linear-gradient(135deg,#6f63d9,#8a7ef0) !important;
-  border-color: #6f63d9 !important;
-  color: #ffffff !important;
-  box-shadow: 0 10px 24px rgba(111,99,217,.35) !important;
-}
 
 
 
