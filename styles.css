@@ -1050,3 +1050,27 @@ a{ color: inherit; }
 
 /* Product price row etc */
 .price, .product__title, .modal__title{ color: var(--text) !important; }
+/* ===== Fix Quick Contact readability ===== */
+
+.labelBox{
+  background: #ffffff;
+}
+
+.labelBox__title{
+  color: #2a235e;
+  font-weight: 800;
+}
+
+.labelRow span{
+  color: #5b56a6;     /* اسم الحقل (Phone, Email, Location) */
+  font-weight: 600;
+}
+
+.labelRow a,
+.labelRow div,
+.labelRow strong{
+  color: #1f1b3a !important;   /* القيم نفسها */
+  font-weight: 700;
+  opacity: 1 !important;
+}
+
