@@ -11,6 +11,11 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 
+  <!-- ✅ Smooth scroll + prevent sticky header from hiding sections -->
+  <style>
+    html{ scroll-behavior: smooth; }
+    section{ scroll-margin-top: 120px; } /* عدّلها لو الهيدر أعلى/أقل */
+  </style>
 </head>
 
 <body data-lang="en" data-dir="ltr">
@@ -18,7 +23,7 @@
   <header class="topbar">
     <div class="container topbar__inner">
       <a class="brand" href="#home" aria-label="Pharmaglow Home">
-       <img src="assets/logo.jpeg" alt="Pharmaglow Logo" class="brand__logo">
+        <img src="assets/logo.jpeg" alt="Pharmaglow Logo" class="brand__logo">
         <div class="brand__text">
           <div class="brand__name">Pharmaglow</div>
           <div class="brand__tag" data-i18n="brandTag">Science Meets Nature</div>
@@ -186,8 +191,6 @@
 
       <div class="orderLayout">
         <div class="orderForm card">
-          <!-- خيار 1: Formspree (موصى به) -->
-          <!-- استبدل YOUR_FORMSPREE_ENDPOINT بالرابط الخاص بك -->
           <form id="orderForm" action="YOUR_FORMSPREE_ENDPOINT" method="POST">
             <div class="formRow">
               <label data-i18n="fullName">Full Name</label>
@@ -215,7 +218,6 @@
               <textarea name="notes" rows="4"></textarea>
             </div>
 
-            <!-- بريد الاستلام -->
             <input type="hidden" name="_replyto" value="mariamasaadlabib@gmail.com" />
             <input type="hidden" name="_subject" value="New Pharmaglow Order" />
 
@@ -229,7 +231,6 @@
                 By submitting, you agree to be contacted to confirm your order details.
               </p>
 
-              <!-- خيار 2: mailto fallback (لو مش هتستخدم Formspree) -->
               <button class="btn btn--ghost btn--full" type="button" id="mailtoBtn" data-i18n="mailtoFallback">
                 Send via Email App (Fallback)
               </button>
@@ -301,7 +302,6 @@
       </div>
     </div>
   </footer>
-
 
   <!-- Product Details Modal -->
   <div class="modal is-hidden" id="productModal" role="dialog" aria-modal="true" aria-label="Product details">
@@ -377,9 +377,6 @@
     </div>
   </div>
 
-
   <script src="script.js"></script>
 </body>
 </html>
-
-
