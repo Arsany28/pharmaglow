@@ -381,19 +381,27 @@ body{
 }
 .chip{
   border-radius: 999px;
-  border: 1px solid rgba(234,240,255,.12);
-  background: rgba(255,255,255,.03);
-  color: rgba(234,240,255,.88);
-  padding: 10px 14px;
-  font-weight: 800;
-  cursor:pointer;
-  transition: transform .14s var(--ease), border-color .14s var(--ease), background .14s var(--ease);
+  border: 1px solid #d8d4ff;
+  background: #f6f5ff;
+  color: #5b56a6;
+  padding: 10px 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .2s ease;
 }
-.chip:hover{ transform: translateY(-1px); border-color: rgba(234,240,255,.22); }
+
+.chip:hover{
+  background: #eeecff;
+  border-color: #bfb8ff;
+  transform: translateY(-1px);
+}
+
+/* الزرار المختار */
 .chip.is-active{
-  background: rgba(34,211,238,.10);
-  border-color: rgba(34,211,238,.34);
-  color: rgba(234,240,255,.98);
+  background: linear-gradient(135deg, #6f63d9, #8a7ef0);
+  border-color: #6f63d9;
+  color: #ffffff;
+  box-shadow: 0 6px 18px rgba(111,99,217,.35);
 }
 
 /* ---------- Product Grid ---------- */
@@ -933,5 +941,6 @@ input::placeholder, textarea::placeholder{ color: rgba(31,36,48,.45); }
 .hero .muted, .hero p{
   color: #4b4b66;
 }
+
 
 
