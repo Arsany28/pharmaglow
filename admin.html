@@ -505,6 +505,8 @@
               </div>
             </div>
             <div class="panelBody">
+
+              <!-- ✅ FIXED: Active field kept inside .formGrid -->
               <div class="formGrid">
                 <div class="field">
                   <label>Product ID (unique)</label>
@@ -558,7 +560,7 @@
                   <label>How to Use AR</label>
                   <textarea class="input" id="p_use_ar" rows="3" placeholder="طريقة الاستخدام بالعربي"></textarea>
                 </div>
-</div>
+
                 <div class="field">
                   <label>Active</label>
                   <select class="select" id="p_active">
@@ -1007,6 +1009,7 @@
     });
   }
 
+  /* ✅ FIX 1: fill ALL product fields (desc/ingredients/use EN/AR) */
   function fillProductForm(p){
     $("#p_id").value = p.id || "";
     $("#p_category").value = p.category || "hair";
@@ -1015,10 +1018,24 @@
     $("#p_price").value = (p.price ?? "");
     $("#p_image_url").value = p.image_url || p.img || "";
     $("#p_active").value = (p.active === true || String(p.active).toLowerCase()==="true") ? "true" : "false";
+
+    $("#p_desc_en").value = p.description_en || "";
+    $("#p_desc_ar").value = p.description_ar || "";
+    $("#p_ing_en").value  = p.ingredients_en  || "";
+    $("#p_ing_ar").value  = p.ingredients_ar  || "";
+    $("#p_use_en").value  = p.how_to_use_en   || "";
+    $("#p_use_ar").value  = p.how_to_use_ar   || "";
+
+    $("#productMsg").textContent = "Loaded product for editing.";
   }
 
+  /* ✅ FIX 2: clear ALL product fields */
   function clearProductForm(){
-    ["p_id","p_name_en","p_name_ar","p_price","p_image_url"].forEach(id=>$("#"+id).value="");
+    [
+      "p_id","p_name_en","p_name_ar","p_price","p_image_url",
+      "p_desc_en","p_desc_ar","p_ing_en","p_ing_ar","p_use_en","p_use_ar"
+    ].forEach(id=>$("#"+id).value="");
+
     $("#p_category").value="hair";
     $("#p_active").value="true";
     $("#productMsg").textContent = "—";
